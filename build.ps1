@@ -16,10 +16,11 @@ if ($sdkLine -notmatch '^(\S+)\s+\[(.+)\]$') { throw 'A .NET SDK is required.' }
 $compilerPath = Join-Path (Join-Path $Matches[2] $Matches[1]) 'Roslyn\bincore\csc.dll'
 $outputDir = Join-Path $projectDir 'dist'
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
-$compilerArgs = @('/nologo', '/noconfig', '/nostdlib+', '/target:library', '/optimize+', '/langversion:7.3', '/warnaserror+')
+$compilerArgs = @('/nologo', '/noconfig', '/nostdlib+', '/target:library', '/optimize+', '/deterministic+', '/langversion:7.3', '/warnaserror+')
 $compilerArgs += $references | ForEach-Object { '/reference:' + $_ }
 $compilerArgs += '/out:' + (Join-Path $outputDir 'KK_DailyOutfits.dll')
 $compilerArgs += Get-ChildItem -LiteralPath (Join-Path $projectDir 'src') -Filter '*.cs' | ForEach-Object FullName
 & dotnet $compilerPath @compilerArgs
 if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $LASTEXITCODE" }
 Write-Host "Built $outputDir\KK_DailyOutfits.dll (references game DLLs in place; no game files copied)."
+& (Join-Path $projectDir 'archive-release.ps1') -DllPath (Join-Path $outputDir 'KK_DailyOutfits.dll') -GamePath $GamePath
